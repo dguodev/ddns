@@ -34,10 +34,7 @@ const validateInput = (req, res, next) => {
 
 // Helper function to get client IP
 const getClientIp = (req) => {
-  logger.info('req.headers', req.headers);
-  return req.headers['x-forwarded-for']?.split(',')[0].trim() || 
-         req.headers['cf-connecting-ip'] || 
-         req.socket.remoteAddress;
+  return req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
 };
 
 // Configure Winston logger
