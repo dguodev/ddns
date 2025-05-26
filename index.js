@@ -99,8 +99,6 @@ app.post('/', validateInput, async (req, res) => {
       proxied: false
     };
 
-    // Debug log for Cloudflare API payload
-    logger.debug('Sending payload to Cloudflare API', { zoneId, dnsRecordId, payload });
 
     // Update DNS record with new IP
     const response = await axios.put(
