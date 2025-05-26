@@ -73,7 +73,7 @@ app.post('/', validateInput, async (req, res) => {
   // Cache key is zoneId + domain
   const cacheKey = `${zoneId}:${domain}`;
   if (ipCache.get(cacheKey) === clientIp) {
-    logger.info('IP unchanged, skipping Cloudflare update', { domain, zoneId, clientIp });
+    logger.info('IP unchanged, skipping Cloudflare update', { domain, clientIp });
     return res.json({
       success: true,
       message: `IP for ${domain} ${clientIp}, no update needed.`
@@ -117,7 +117,6 @@ app.post('/', validateInput, async (req, res) => {
     // Log the payload being sent to Cloudflare (excluding apiToken and dnsRecordId)
     logger.info('Sending payload to Cloudflare', {
       payload,
-      zoneId,
       domain
     });
 
