@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const winston = require('winston');
+const { LRUCache } = require('lru-cache');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -51,6 +52,12 @@ const logger = winston.createLogger({
   ]
 });
 
+// LRU cache for last known IPs (max 500 entries, 5 min TTL)
+const ipCache = new LRUCache({
+  max: 5000,
+  ttl: 1000 * 60 * 6 // 6 minutes
+});
+
 // POST endpoint to update Cloudflare DNS
 app.post('/', validateInput, async (req, res) => {
   const { apiToken, domain, zoneId, recordId } = req.body;
@@ -60,6 +67,16 @@ app.post('/', validateInput, async (req, res) => {
   if (!clientIp) {
     return res.status(400).json({
       error: 'Could not determine client IP'
+    });
+  }
+
+  // Cache key is zoneId + domain
+  const cacheKey = `${zoneId}:${domain}`;
+  if (ipCache.get(cacheKey) === clientIp) {
+    logger.info('IP unchanged, skipping Cloudflare update', { domain, zoneId, clientIp });
+    return res.json({
+      success: true,
+      message: `IP for ${domain} ${clientIp}, no update needed.`
     });
   }
 
@@ -112,6 +129,8 @@ app.post('/', validateInput, async (req, res) => {
     );
 
     if (response.data.success) {
+      // Update cache
+      ipCache.set(cacheKey, clientIp);
       res.json({
         success: true,
         message: `DNS record for ${domain} updated to IP ${clientIp}`,
