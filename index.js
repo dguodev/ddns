@@ -55,7 +55,7 @@ const logger = winston.createLogger({
 // LRU cache for last known IPs (max 500 entries, 5 min TTL)
 const ipCache = new LRUCache({
   max: 5000,
-  ttl: 1000 * 60 * 6 // 6 minutes
+  ttl: 1000 * 60 * 60 // 1 hour
 });
 
 // POST endpoint to update Cloudflare DNS
